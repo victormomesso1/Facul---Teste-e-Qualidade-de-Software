@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>TaskManager UNISAGRADO</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #2b4c7e;
+      color: #fff;
+      padding: 16px;
+      text-align: center;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      cursor: pointer;
+      padding: 8px 14px;
+      border-radius: 4px;
+      border: none;
+      background: #2b4c7e;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    button.secondary {
+      background: #777;
+    }
+
+    button.danger {
+      background: #c0392b;
+    }
+
+    button.small {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    #message {
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    #message.success {
+      background: #e3f8e3;
+      color: #2e7d32;
+      border: 1px solid #2e7d32;
+    }
+
+    #message.error {
+      background: #fdecea;
+      color: #c0392b;
+      border: 1px solid #c0392b;
+    }
+
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .task-item {
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .task-main {
+      flex: 1;
+    }
+
+    .task-title {
+      font-weight: bold;
+      margin: 0 0 4px 0;
+    }
+
+    .task-meta {
+      font-size: 13px;
+      color: #555;
+    }
+
+    .task-actions button {
+      margin-left: 4px;
+      margin-bottom: 4px;
+    }
+
+    .task-completed .task-title {
+      text-decoration: line-through;
+      color: #2e7d32;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #eee;
+      margin-left: 4px;
+    }
+
+    .badge.pending {
+      background: #fff8e1;
+      color: #f39c12;
+    }
+
+    .badge.done {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    textarea {
+      min-height: 60px;
+    }
+
+    .small-text {
+      font-size: 12px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>TaskManager UNISAGRADO</h1>
+</header>
+<main>
+  <div id="message" class="hidden"></div>
+
+  <!-- LOGIN -->
+  <section id="loginView">
+    <h2>Login</h2>
+    <p class="small-text">
+      Usuário padrão de teste:<br>
+      <strong>E-mail:</strong> teste@unisagrado.edu<br>
+      <strong>Senha:</strong> 123456
+    </p>
+    <div class="form-group">
+      <label for="loginEmail">E-mail</label>
+      <input type="email" id="loginEmail" placeholder="seuemail@unisagrado.edu">
+    </div>
+    <div class="form-group">
+      <label for="loginPassword">Senha</label>
+      <input type="password" id="loginPassword" placeholder="Sua senha">
+    </div>
+    <button id="loginButton">Entrar</button>
+  </section>
+
+  <!-- APP -->
+  <section id="appView" class="hidden">
+    <div class="toolbar">
+      <div>
+        <h2>Minhas tarefas</h2>
+        <div class="small-text" id="userInfo"></div>
+      </div>
+      <div class="toolbar-right">
+        <div>
+          <label for="filterStatus">Filtro status</label>
+          <select id="filterStatus">
+            <option value="Todas">Todas</option>
+            <option value="Pendente">Pendentes</option>
+            <option value="Concluída">Concluídas</option>
+          </select>
+        </div>
+        <button id="logoutButton" class="secondary">Sair</button>
+      </div>
+    </div>
+
+    <section>
+      <h3>Nova tarefa</h3>
+      <div class="form-group">
+        <label for="taskTitle">Título (máx. 100 caracteres)</label>
+        <input type="text" id="taskTitle" maxlength="100" placeholder="Ex: Trabalho de Testes e Qualidade">
+      </div>
+      <div class="form-group">
+        <label for="taskDescription">Descrição (opcional)</label>
+        <textarea id="taskDescription" placeholder="Detalhes da tarefa"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="taskDueDate">Data de vencimento (opcional)</label>
+        <input type="date" id="taskDueDate">
+      </div>
+      <button id="createTaskButton">Salvar tarefa</button>
+    </section>
+
+    <hr>
+
+    <section>
+      <h3>Lista de tarefas</h3>
+      <ul id="taskList" class="task-list"></ul>
+    </section>
+  </section>
+</main>
+
+<script>
+  const API_BASE_URL = "http://127.0.0.1:3000/api";
+
+  let authToken = null;
+  let currentUser = null;
+
+  const loginView = document.getElementById("loginView");
+  const appView = document.getElementById("appView");
+  const messageBox = document.getElementById("message");
+
+  const loginEmailInput = document.getElementById("loginEmail");
+  const loginPasswordInput = document.getElementById("loginPassword");
+  const loginButton = document.getElementById("loginButton");
+
+  const logoutButton = document.getElementById("logoutButton");
+  const userInfo = document.getElementById("userInfo");
+
+  const filterStatusSelect = document.getElementById("filterStatus");
+  const taskList = document.getElementById("taskList");
+
+  const taskTitleInput = document.getElementById("taskTitle");
+  const taskDescriptionInput = document.getElementById("taskDescription");
+  const taskDueDateInput = document.getElementById("taskDueDate");
+  const createTaskButton = document.getElementById("createTaskButton");
+
+  function showMessage(text, type = "success") {
+    if (!text) {
+      messageBox.classList.add("hidden");
+      return;
+    }
+    messageBox.textContent = text;
+    messageBox.classList.remove("hidden");
+    messageBox.classList.remove("success", "error");
+    messageBox.classList.add(type);
+
+    // some feedback but não longo demais
+    setTimeout(() => {
+      messageBox.classList.add("hidden");
+    }, 4000);
+  }
+
+  function showLoginView() {
+    loginView.classList.remove("hidden");
+    appView.classList.add("hidden");
+  }
+
+  function showAppView() {
+    loginView.classList.add("hidden");
+    appView.classList.remove("hidden");
+  }
+
+  async function apiRequest(path, options = {}) {
+    const headers = options.headers || {};
+    headers["Content-Type"] = "application/json";
+    if (authToken) {
+      headers["Authorization"] = "Bearer " + authToken;
+    }
+
+    const response = await fetch(API_BASE_URL + path, {
+      ...options,
+      headers
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      data = null;
+    }
+
+    if (!response.ok) {
+      const msg =
+        (data && data.message) ||
+        "Erro ao comunicar com o servidor (" + response.status + ")";
+      throw new Error(msg);
+    }
+
+    return data;
+  }
+
+  async function handleLogin() {
+    const email = loginEmailInput.value.trim();
+    const password = loginPasswordInput.value.trim();
+
+    if (!email || !password) {
+      showMessage("E-mail e senha são obrigatórios", "error");
+      return;
+    }
+
+    try {
+      const data = await apiRequest("/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password })
+      });
+
+      authToken = data.token;
+      currentUser = data.user;
+
+      localStorage.setItem("token", authToken);
+      localStorage.setItem("user", JSON.stringify(currentUser));
+
+      userInfo.textContent = `Logado como: ${currentUser.name} (${currentUser.email})`;
+      showMessage(data.message || "Login realizado com sucesso", "success");
+      showAppView();
+      await loadTasks();
+    } catch (err) {
+      showMessage(err.message, "error");
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await apiRequest("/logout", {
+        method: "POST"
+      });
+    } catch (err) {
+      // se der erro no logout, só ignora
+    }
+
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    showMessage("Logout realizado", "success");
+    showLoginView();
+  }
+
+  function formatDate(dateString) {
+    if (!dateString) return "-";
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) {
+      // talvez já venha no formato yyyy-mm-dd
+      return dateString;
+    }
+    return d.toLocaleDateString("pt-BR");
+  }
+
+  function renderTasks(tasks) {
+    taskList.innerHTML = "";
+
+    if (!tasks || tasks.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "Nenhuma tarefa encontrada.";
+      li.classList.add("small-text");
+      taskList.appendChild(li);
+      return;
+    }
+
+    tasks.forEach((task) => {
+      const li = document.createElement("li");
+      li.classList.add("task-item");
+      if (task.status === "Concluída") {
+        li.classList.add("task-completed");
+      }
+
+      const mainDiv = document.createElement("div");
+      mainDiv.classList.add("task-main");
+
+      const titleEl = document.createElement("p");
+      titleEl.classList.add("task-title");
+      titleEl.textContent = task.title;
+
+      const statusBadge = document.createElement("span");
+      statusBadge.classList.add("badge");
+      if (task.status === "Pendente") {
+        statusBadge.classList.add("pending");
+      } else {
+        statusBadge.classList.add("done");
+      }
+      statusBadge.textContent = task.status;
+      titleEl.appendChild(statusBadge);
+
+      const descEl = document.createElement("p");
+      descEl.classList.add("task-meta");
+      descEl.textContent =
+        (task.description ? task.description + " | " : "") +
+        "Vencimento: " +
+        formatDate(task.dueDate);
+
+      mainDiv.appendChild(titleEl);
+      mainDiv.appendChild(descEl);
+
+      const actionsDiv = document.createElement("div");
+      actionsDiv.classList.add("task-actions");
+
+      if (task.status === "Pendente") {
+        const completeBtn = document.createElement("button");
+        completeBtn.textContent = "Concluir";
+        completeBtn.classList.add("small");
+        completeBtn.addEventListener("click", () =>
+          completeTask(task.id)
+        );
+        actionsDiv.appendChild(completeBtn);
+      }
+
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Editar";
+      editBtn.classList.add("small");
+      editBtn.addEventListener("click", () => editTaskPrompt(task));
+      actionsDiv.appendChild(editBtn);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Excluir";
+      deleteBtn.classList.add("small", "danger");
+      deleteBtn.addEventListener("click", () => deleteTask(task.id));
+      actionsDiv.appendChild(deleteBtn);
+
+      li.appendChild(mainDiv);
+      li.appendChild(actionsDiv);
+
+      taskList.appendChild(li);
+    });
+  }
+
+  async function loadTasks() {
+    try {
+      const status = filterStatusSelect.value || "Todas";
+      const tasks = await apiRequest("/tasks?status=" + encodeURIComponent(status));
+      renderTasks(tasks);
+    } catch (err) {
+      showMessage(err.message, "error");
+    }
+  }
+
+  async function createTask() {
+    const title = taskTitleInput.value.trim();
+    const description = taskDescriptionInput.value.trim();
+    const dueDate = taskDueDateInput.value || null;
+
+    if (!title) {
+      showMessage("Título é obrigatório", "error");
+      return;
+    }
+
+    try {
+      const data = await apiRequest("/tasks", {
+        method: "POST",
+        body: JSON.stringify({ title, description, dueDate })
+      });
+
+      showMessage(data.message || "Tarefa criada com sucesso", "success");
+
+      taskTitleInput.value = "";
+      taskDescriptionInput.value = "";
+      taskDueDateInput.value = "";
+
+      await loadTasks();
+    } catch (err) {
+      showMessage(err.message, "error");
+    }
+  }
+
+  async function completeTask(id) {
+    try {
+      const data = await apiRequest(`/tasks/${id}/complete`, {
+        method: "POST"
+      });
+      showMessage(data.message || "Tarefa concluída", "success");
+      await loadTasks();
+    } catch (err) {
+      showMessage(err.message, "error");
+    }
+  }
+
+  function editTaskPrompt(task) {
+    const newTitle = prompt("Novo título da tarefa:", task.title);
+    if (newTitle === null) return; // cancelou
+
+    const newDescription = prompt(
+      "Nova descrição (deixe vazio para remover):",
+      task.description || ""
+    );
+    // podemos manter dueDate como está se não quiser alterar
+    editTask(task.id, {
+      title: newTitle,
+      description: newDescription
+    });
+  }
+
+  async function editTask(id, { title, description }) {
+    try {
+      const body = {};
+      if (title !== undefined) body.title = title;
+      if (description !== undefined) body.description = description;
+
+      const data = await apiRequest(`/tasks/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(body)
+      });
+
+      showMessage(data.message || "Tarefa atualizada com sucesso", "success");
+      await loadTasks();
+    } catch (err) {
+      showMessage(err.message, "error");
+    }
+  }
+
+  async function deleteTask(id) {
+    const confirmed = confirm("Tem certeza que deseja excluir esta tarefa?");
+    if (!confirmed) return;
+
+    try {
+      const data = await apiRequest(`/tasks/${id}`, {
+        method: "DELETE"
+      });
+      showMessage(data.message || "Tarefa excluída com sucesso", "success");
+      await loadTasks();
+    } catch (err) {
+      showMessage(err.message, "error");
+    }
+  }
+
+  // Eventos
+  loginButton.addEventListener("click", handleLogin);
+  logoutButton.addEventListener("click", handleLogout);
+  filterStatusSelect.addEventListener("change", loadTasks);
+  createTaskButton.addEventListener("click", createTask);
+
+  // Permite Enter para fazer login
+  loginPasswordInput.addEventListener("keyup", (e) => {
+    if (e.key === "Enter") {
+      handleLogin();
+    }
+  });
+
+  // Auto-login se tiver token salvo
+  window.addEventListener("DOMContentLoaded", async () => {
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    if (storedToken && storedUser) {
+      authToken = storedToken;
+      try {
+        currentUser = JSON.parse(storedUser);
+      } catch {
+        currentUser = null;
+      }
+      if (currentUser) {
+        userInfo.textContent = `Logado como: ${currentUser.name} (${currentUser.email})`;
+        showAppView();
+        await loadTasks();
+        return;
+      }
+    }
+    showLoginView();
+  });
+</script>
+</body>
+</html>

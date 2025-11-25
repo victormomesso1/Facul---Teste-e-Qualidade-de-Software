@@ -1,0 +1,13 @@
+{
+  "name": "taskmanager-unisagrado",
+  "version": "1.0.0",
+  "description": "TaskManager UNISAGRADO - backend simples para projeto de Testes e Qualidade",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.0"
+  }
+}
